@@ -10,8 +10,39 @@ const { errorResponder, errorTypes } = require('../../../core/errors');
  */
 async function getUsers(request, response, next) {
   try {
+    let page_number = request.query.page_number || 0;
+    let page_size = request.query.page_size || 0;
+
+    // If page_number is 0, default it to 1 and set page_size to 0 to display all users
+    const pageNumber = page_number == 0 ? 1 : page_number;
+    const pageSize = page_number == 0 ? 0 : page_size;
+
+    // Retrieve all users
     const users = await usersService.getUsers();
-    return response.status(200).json(users);
+    const count = users.length;
+
+    // Determine the limit per page; if pageSize is 0, display all users
+    const limit = pageSize == 0 ? count : pageSize;
+
+    // Calculate pagination
+    const startIndex = (pageNumber - 1) * limit;
+    const endIndex = Math.min(startIndex + limit, count);
+    const paginatedUsers = users.slice(startIndex, endIndex);
+
+    // Calculate the total number of pages
+    const totalPages = Math.ceil(count / limit);
+
+    const result = {
+      page_number: pageNumber,
+      page_size: paginatedUsers.length,
+      count: count,
+      total_pages: totalPages,
+      has_previous_page: pageNumber > 1,
+      has_next_page: pageNumber < totalPages,
+      data: paginatedUsers,
+    };
+
+    return response.status(200).json(result);
   } catch (error) {
     return next(error);
   }

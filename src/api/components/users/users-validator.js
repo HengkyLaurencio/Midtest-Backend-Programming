@@ -50,8 +50,10 @@ module.exports = {
   },
   getUsers: {
     query: {
-      page_number: joi.number().integer().positive(),
-      page_size: joi.number().integer().positive(),
+      page_number: joi.number().integer().positive().label('Page number'),
+      page_size: joi.number().integer().positive().label('Page size'),
+      sort: joi.string().label('Sort'),
+      search: joi.string().label('Search'),
     },
   },
 };

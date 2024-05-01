@@ -10,24 +10,52 @@ const { errorResponder, errorTypes } = require('../../../core/errors');
  */
 async function getUsers(request, response, next) {
   try {
-    let page_number = request.query.page_number || 0;
-    let page_size = request.query.page_size || 0;
-
-    // If page_number is 0, default it to 1 and set page_size to 0 to display all users
-    const pageNumber = page_number == 0 ? 1 : page_number;
-    const pageSize = page_number == 0 ? 0 : page_size;
+    const page_number = request.query.page_number || 0;
+    const page_size = request.query.page_size || 0;
+    const sort = request.query.sort || '';
+    const search = request.query.search || '';
 
     // Retrieve all users
     const users = await usersService.getUsers();
-    const count = users.length;
+
+    // Filter users based on the search query parameter if it exists, otherwise return all users
+    const filteredUsers = search
+      ? users.filter((user) => {
+          const [searchField, searchKey] = search.split(':');
+          // Check if fieldName is valid (either 'name' or 'email')
+          if (['name', 'email'].includes(searchField))
+            return user[searchField].includes(searchKey);
+        })
+      : users;
+
+    // Sort users based on the sort query parameter if it exists, otherwise default to sorting by email in ascending order
+    const sortedUsers = filteredUsers.sort((a, b) => {
+      const [sortField, sortOrder] = sort.split(':');
+
+      // Validate sortField and sortOrder parameters
+      const field = ['name', 'email'].includes(sortField) ? sortField : 'email'; // Ensure sortField is either 'name' or 'email'
+      const order = ['asc', 'desc'].includes(sortOrder) ? sortOrder : 'asc'; // Ensure sortOrder is either 'asc' or 'desc'
+
+      const x = a[field].toLowerCase();
+      const y = b[field].toLowerCase();
+
+      // Determine the sort order based on the sortOrder parameter
+      return order === 'asc' ? x.localeCompare(y) : y.localeCompare(x);
+    });
+
+    // If page_number is 0, default it to 1 and set page_size to 0 to display all users
+    const pageNumber = page_number === 0 ? 1 : page_number;
+    const pageSize = page_number === 0 ? 0 : page_size;
+
+    const count = sortedUsers.length;
 
     // Determine the limit per page; if pageSize is 0, display all users
-    const limit = pageSize == 0 ? count : pageSize;
+    const limit = pageSize === 0 ? count : pageSize;
 
     // Calculate pagination
     const startIndex = (pageNumber - 1) * limit;
     const endIndex = Math.min(startIndex + limit, count);
-    const paginatedUsers = users.slice(startIndex, endIndex);
+    const paginatedUsers = sortedUsers.slice(startIndex, endIndex);
 
     // Calculate the total number of pages
     const totalPages = Math.ceil(count / limit);

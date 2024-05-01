@@ -12,17 +12,26 @@ async function login(request, response, next) {
   const { email, password } = request.body;
 
   try {
+    const emailIsExists = await authenticationServices.emailIsRegistered(email);
+    if (!emailIsExists) {
+      throw errorResponder(errorTypes.NOT_FOUND, "This email doesn't exist");
+    }
+
+    const loginAttempts = await authenticationServices.checkLoginAttempt(email);
+    if (!loginAttempts) {
+      throw errorResponder(
+        errorTypes.FORBIDDEN,
+        'Too many failed login attempts'
+      );
+    }
+
     // Check login credentials
     const loginSuccess = await authenticationServices.checkLoginCredentials(
       email,
       password
     );
-
     if (!loginSuccess) {
-      throw errorResponder(
-        errorTypes.INVALID_CREDENTIALS,
-        'Wrong email or password'
-      );
+      throw errorResponder(errorTypes.INVALID_CREDENTIALS, 'Wrong password');
     }
 
     return response.status(200).json(loginSuccess);

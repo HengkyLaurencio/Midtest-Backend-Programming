@@ -12,31 +12,21 @@ const { date } = require('joi');
 async function checkLoginCredentials(email, password) {
   const user = await authenticationRepository.getUserByEmail(email);
 
-  // We define default user password here as '<RANDOM_PASSWORD_FILTER>'
-  // to handle the case when the user login is invalid. We still want to
-  // check the password anyway, so that it prevents the attacker in
-  // guessing login credentials by looking at the processing time.
-  const userPassword = user ? user.password : '<RANDOM_PASSWORD_FILLER>';
-  const passwordChecked = await passwordMatched(password, userPassword);
+  const passwordChecked = await passwordMatched(password, user.password);
 
-  if (!passwordChecked) {
-    await authenticationRepository.updateUserLoginAtttempt(
-      user.id,
-      user.loginAttempts + 1,
-      new Date()
-    );
-  }
+  // Update login attempt count based on password verification result
+  // If the password is verified, reset the login attempts to 0,
+  // indicating a successful login. Otherwise, increment the login attempts count by 1.
+  const loginAttempts = passwordChecked ? 0 : user.loginAttempts + 1;
+  // Update the user's login attempt count in the database, along with the current timestamp.
+  await authenticationRepository.updateUserLoginAtttempt(
+    user.id,
+    loginAttempts,
+    new Date()
+  );
 
-  // Because we always check the password (see above comment), we define the
-  // login attempt as successful when the `user` is found (by email) and
-  // the password matches.
-  if (user && passwordChecked) {
-    await authenticationRepository.updateUserLoginAtttempts(
-      user.id,
-      0,
-      new Date()
-    );
-
+  // If password is correct, return user data and token
+  if (passwordChecked) {
     return {
       email: user.email,
       name: user.name,
@@ -63,23 +53,32 @@ async function emailIsRegistered(email) {
   return false;
 }
 
+/**
+ * Check login attempt
+ * @param {string} email - Email
+ * @returns {boolean}
+ */
 async function checkLoginAttempt(email) {
   const user = await authenticationRepository.getUserByEmail(email);
 
+  // Calculate the time difference between the last login attempt and the current time
   const lastLoginAttempt = user.lastLoginAttempt;
   const now = new Date();
   const timeDifference = now - lastLoginAttempt;
 
+  // If the time difference exceeds the login attempt interval, reset the login attempts
   if (timeDifference > 30 * 60 * 1000) {
+    // 30 minutes in milliseconds
     await authenticationRepository.updateUserLoginAtttempt(
       user.id,
       0,
       lastLoginAttempt
     );
+    return true;
   }
 
-  const loginAttempts = user.loginAttempts;
-  if (loginAttempts == 5) {
+  // If the user has reached the maximum number of login attempts, deny further attempts
+  if (user.loginAttempts >= 5) {
     return false;
   }
 

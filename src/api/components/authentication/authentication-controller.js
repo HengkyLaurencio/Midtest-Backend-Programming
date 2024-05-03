@@ -12,11 +12,14 @@ async function login(request, response, next) {
   const { email, password } = request.body;
 
   try {
-    const emailIsExists = await authenticationServices.emailIsRegistered(email);
-    if (!emailIsExists) {
+    // Check if the email is registered
+    const emailIsRegistered =
+      await authenticationServices.emailIsRegistered(email);
+    if (!emailIsRegistered) {
       throw errorResponder(errorTypes.NOT_FOUND, "This email doesn't exist");
     }
 
+    // Check login attempts
     const loginAttempts = await authenticationServices.checkLoginAttempt(email);
     if (!loginAttempts) {
       throw errorResponder(

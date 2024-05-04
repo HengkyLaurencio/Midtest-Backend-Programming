@@ -10,7 +10,12 @@ const route = express.Router();
 module.exports = (app) => {
   app.use('/banking', route);
 
-  route.get('/', bankingControllers.test);
+  route.get(
+    '/',
+    authenticationMiddleware,
+    bankingControllers.userBankingInformation
+  );
+
   route.post(
     '/create-account',
     authenticationMiddleware,

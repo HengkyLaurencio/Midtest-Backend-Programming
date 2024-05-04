@@ -1,4 +1,4 @@
-const { bankingAccount } = require('../../../models');
+const { bankingAccount, User } = require('../../../models');
 
 const {
   generateBankAccountNumber,
@@ -13,4 +13,17 @@ async function createAccount(userId, name, password) {
   });
 }
 
-module.exports = { createAccount };
+/**
+ * Get user detail
+ * @param {string} id - User ID
+ * @returns {Promise}
+ */
+async function getUser(id) {
+  return User.findById(id);
+}
+
+async function getAccounts(id) {
+  return bankingAccount.find({ userId: id });
+}
+
+module.exports = { createAccount, getUser, getAccounts };

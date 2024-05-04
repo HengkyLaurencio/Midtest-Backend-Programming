@@ -15,13 +15,20 @@ db.once('open', () => {
 });
 
 const User = mongoose.model('users', mongoose.Schema(usersSchema));
+
 const bankingAccount = mongoose.model(
   'bankingAccount',
   mongoose.Schema(bankingSchema.accountsSchema)
+);
+
+const transaction = mongoose.model(
+  'transaction',
+  mongoose.Schema(bankingSchema.transactionsSchema)
 );
 
 module.exports = {
   mongoose,
   User,
   bankingAccount,
+  transaction,
 };

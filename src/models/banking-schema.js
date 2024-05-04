@@ -6,4 +6,12 @@ const accountsSchema = {
   balance: { type: Number, default: 0 },
 };
 
-module.exports = { accountsSchema };
+const transactionsSchema = {
+  accountNumber: String,
+  type: String,
+  amount: Number,
+  description: String,
+  timestamp: Date,
+};
+
+module.exports = { accountsSchema, transactionsSchema };

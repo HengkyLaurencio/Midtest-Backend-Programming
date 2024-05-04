@@ -22,6 +22,27 @@ function generateToken(email, userId) {
   );
 }
 
+/**
+ * Sign and generate JWT token
+ * @param {string} userId - user ID
+ * @param {string} accountNumber - account Nuumber
+ * @returns {string} Token
+ */
+function generateBankingToken(userId, accountNumber) {
+  // Sign the JWT token with user info and set the expiration date
+  return jwt.sign(
+    {
+      userId,
+      accountNumber,
+    },
+    config.secret.jwt,
+    {
+      expiresIn: config.secret.jwtExpiresIn,
+    }
+  );
+}
+
 module.exports = {
   generateToken,
+  generateBankingToken,
 };

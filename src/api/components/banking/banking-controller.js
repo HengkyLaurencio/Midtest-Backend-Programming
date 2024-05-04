@@ -111,4 +111,51 @@ async function deleteAccount(request, response, next) {
   }
 }
 
-module.exports = { userBankingInformation, createAccount, deleteAccount };
+/**
+ * Handle account login request
+ * @param {object} request - Express request object
+ * @param {object} response - Express response object
+ * @param {object} next - Express route middlewares
+ * @returns {object} Response object or pass an error to the next route
+ */
+async function login(request, response, next) {
+  try {
+    // Extract user token from request headers
+    const userToken = request.headers.authorization;
+    // Decode token to get user data
+    const userTokenData = getTokenPayload(userToken.substring(4));
+
+    const accountNumber = request.body.account_number;
+    const password = request.body.password;
+
+    // Check if account exists
+    const account = await bankingService.getAccountByNumberAndUserID(
+      userTokenData.userId,
+      accountNumber
+    );
+    if (!account) {
+      throw errorResponder(errorTypes.NOT_FOUND, "This account doesn't exist");
+    }
+
+    // Check login credentials
+    const success = await bankingService.checkLoginCredentials(
+      userTokenData.userId,
+      accountNumber,
+      password
+    );
+    if (!success) {
+      throw errorResponder(errorTypes.INVALID_CREDENTIALS, 'Wrong password');
+    }
+
+    return response.status(200).json(success);
+  } catch (error) {
+    return next(error);
+  }
+}
+
+module.exports = {
+  userBankingInformation,
+  createAccount,
+  deleteAccount,
+  login,
+};

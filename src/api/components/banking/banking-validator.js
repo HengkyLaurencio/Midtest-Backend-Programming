@@ -18,4 +18,10 @@ module.exports = {
         .label('Password'),
     },
   },
+  login: {
+    body: {
+      account_number: joi.string().required().label('account number'),
+      password: joi.string().required().label('password'),
+    },
+  },
 };

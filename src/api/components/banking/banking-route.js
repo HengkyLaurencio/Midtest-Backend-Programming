@@ -10,12 +10,14 @@ const route = express.Router();
 module.exports = (app) => {
   app.use('/banking', route);
 
+  // get user bangking informasion
   route.get(
     '/',
     authenticationMiddleware,
     bankingControllers.userBankingInformation
   );
 
+  // create account
   route.post(
     '/',
     authenticationMiddleware,
@@ -23,9 +25,18 @@ module.exports = (app) => {
     bankingControllers.createAccount
   );
 
+  // delete account
   route.delete(
     '/:account_number',
     authenticationMiddleware,
     bankingControllers.deleteAccount
+  );
+
+  // login account
+  route.post(
+    '/login',
+    authenticationMiddleware,
+    celebrate(bankingValidators.login),
+    bankingControllers.login
   );
 };

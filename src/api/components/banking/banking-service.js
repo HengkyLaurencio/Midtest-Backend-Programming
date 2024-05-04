@@ -1,7 +1,7 @@
 const bankingRepository = require('./banking-repository');
 
 const { hashPassword, passwordMatched } = require('../../../utils/password');
-const { P } = require('pino');
+const { generateBankingToken } = require('../../../utils/session-token');
 
 /**
  * create bangkin account
@@ -31,7 +31,7 @@ async function createAccount(userId, name, password) {
  */
 async function userBankingInformation(userId) {
   const userData = await bankingRepository.getUser(userId);
-  const accounts = await bankingRepository.getAccounts(userId);
+  const accounts = await bankingRepository.getAccountsByUserId(userId);
 
   const accountsResult = [];
   for (let i = 0; i < accounts.length; i++) {
@@ -72,4 +72,58 @@ async function deleteAccount(userId, accountNumber) {
   return true;
 }
 
-module.exports = { createAccount, userBankingInformation, deleteAccount };
+/**
+ * Retrieves an account by user ID and account number.
+ * @param {string} userId - user id
+ * @param {string} accountNumber - account number
+ * @returns {object} The account object if found, null otherwise.
+ */
+async function getAccountByNumberAndUserID(userId, accountNumber) {
+  const account = await bankingRepository.getAccountByNumberAndUserID(
+    userId,
+    accountNumber
+  );
+  // If account doesn't exist, return null
+  if (!account) {
+    return null;
+  }
+  // Otherwise, return the account object
+  return account;
+}
+
+/**
+ * Check account number and password for login.
+ * @param {string} userId - user id
+ * @param {string} accountNumber - account number
+ * @param {string} password - Password
+ * @returns {object} An object containing, among others, the JWT token if the account number and password are matched. Otherwise returns null.
+ */
+async function checkLoginCredentials(userId, accountNumber, password) {
+  // Retrieve account details by account number and user ID
+  const account = await bankingRepository.getAccountByNumberAndUserID(
+    userId,
+    accountNumber
+  );
+
+  // Check if the provided password matches the account's passwor
+  const passwordChecked = await passwordMatched(password, account.password);
+
+  // If password matches, generate banking token and return account details
+  if (passwordChecked) {
+    return {
+      account_number: accountNumber,
+      name: account.name,
+      token: generateBankingToken(userId, accountNumber),
+    };
+  }
+
+  return null;
+}
+
+module.exports = {
+  createAccount,
+  userBankingInformation,
+  deleteAccount,
+  getAccountByNumberAndUserID,
+  checkLoginCredentials,
+};

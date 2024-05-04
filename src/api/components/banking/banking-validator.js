@@ -24,4 +24,16 @@ module.exports = {
       password: joi.string().required().label('password'),
     },
   },
+  deposit: {
+    body: {
+      amount: joi.number().integer().positive().required().label('amount'),
+    },
+  },
+  tranfer: {
+    body: {
+      recipient_account: joi.string().required().label('recipient account'),
+      amount: joi.number().integer().positive().required().label('amount'),
+      description: joi.string().optional().label('description'),
+    },
+  },
 };

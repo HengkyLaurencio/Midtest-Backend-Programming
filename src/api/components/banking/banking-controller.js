@@ -153,9 +153,91 @@ async function login(request, response, next) {
   }
 }
 
+/**
+ * Handle deposit request
+ * @param {object} request - Express request object
+ * @param {object} response - Express response object
+ * @param {object} next - Express route middlewares
+ * @returns {object} Response object or pass an error to the next route
+ */
+async function deposit(request, response, next) {
+  try {
+    // Extract account token from request headers
+    const accountToken = request.headers.authorization;
+    // Decode token to get account data
+    const accountData = getTokenPayload(accountToken.substring(5));
+
+    const amount = request.body.amount;
+
+    // Deposit the specified amount into the account
+    const success = await bankingService.deposit(
+      accountData.accountNumber,
+      amount
+    );
+
+    // If deposit fails, throw an error
+    if (!success) {
+      throw errorResponder(errorTypes.UNPROCESSABLE_ENTITY, 'Deposit fail');
+    }
+
+    return response.status(200).json(success);
+  } catch (error) {
+    return next(error);
+  }
+}
+
+/**
+ * Handle transfer request
+ * @param {object} request - Express request object
+ * @param {object} response - Express response object
+ * @param {object} next - Express route middlewares
+ * @returns {object} Response object or pass an error to the next route
+ */
+async function transfer(request, response, next) {
+  try {
+    // Extract account token from request headers
+    const accountToken = request.headers.authorization;
+    // Decode token to get account data
+    const accountData = getTokenPayload(accountToken.substring(5));
+
+    const recipient_account = request.body.recipient_account;
+    const amount = request.body.amount;
+    const description = request.body.description || '';
+
+    // Check if recipient account exists
+    const recipient =
+      await bankingService.getAccountByNumber(recipient_account);
+    if (!recipient) {
+      throw errorResponder(
+        errorTypes.NOT_FOUND,
+        "recipient account doesn't exist"
+      );
+    }
+
+    // Perform the transfer
+    const success = await bankingService.transfer(
+      recipient_account,
+      accountData.accountNumber,
+      amount,
+      description
+    );
+
+    // If deposit fails, throw an error
+    if (!success) {
+      throw errorResponder(errorTypes.UNPROCESSABLE_ENTITY, 'Transfer fail');
+    }
+
+    response.status(200).json(success);
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
   userBankingInformation,
   createAccount,
   deleteAccount,
   login,
+  deposit,
+  transfer,
 };

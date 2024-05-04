@@ -3,6 +3,7 @@ const express = require('express');
 const bankingControllers = require('./banking-controller');
 const bankingValidators = require('./banking-validator');
 const authenticationMiddleware = require('../../middlewares/authentication-middleware');
+const authenticationBankingMiddleware = require('../../middlewares/authentication-banking-middleware');
 const celebrate = require('../../../core/celebrate-wrappers');
 
 const route = express.Router();
@@ -39,4 +40,24 @@ module.exports = (app) => {
     celebrate(bankingValidators.login),
     bankingControllers.login
   );
+
+  // -------- transaction --------
+
+  // deposit
+  route.post(
+    '/transactions/deposit',
+    authenticationBankingMiddleware,
+    celebrate(bankingValidators.deposit),
+    bankingControllers.deposit
+  );
+
+  // transfer to other account
+  route.post(
+    '/transactions/transfer',
+    authenticationBankingMiddleware,
+    celebrate(bankingValidators.tranfer),
+    bankingControllers.transfer
+  );
+
+  route.post('/transactions/history');
 };

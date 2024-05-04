@@ -1,4 +1,4 @@
-const { bankingAccount, User } = require('../../../models');
+const { bankingAccount, User, transaction } = require('../../../models');
 
 const {
   generateBankAccountNumber,
@@ -26,7 +26,7 @@ async function createAccount(userId, name, password) {
  * @returns {Promise}
  */
 async function getUser(id) {
-  return User.findById(id);
+  return await User.findById(id);
 }
 
 /**
@@ -35,7 +35,7 @@ async function getUser(id) {
  * @returns {Promise}
  */
 async function getAccountsByUserId(id) {
-  return bankingAccount.find({ userId: id });
+  return await bankingAccount.find({ userId: id });
 }
 
 /**
@@ -45,7 +45,7 @@ async function getAccountsByUserId(id) {
  * @returns {Promise}
  */
 async function deleteAccount(userId, accountNumber) {
-  return bankingAccount.deleteOne({ userId, accountNumber });
+  return await bankingAccount.deleteOne({ userId, accountNumber });
 }
 
 /**
@@ -55,7 +55,60 @@ async function deleteAccount(userId, accountNumber) {
  * @returns {Promise}
  */
 async function getAccountByNumberAndUserID(userId, accountNumber) {
-  return bankingAccount.findOne({ userId, accountNumber });
+  return await bankingAccount.findOne({ userId, accountNumber });
+}
+
+/**
+ * find account
+ * @param {string} userId - User ID
+ * @returns {Promise}
+ */
+async function getAccountByNumber(accountNumber) {
+  return await bankingAccount.findOne({ accountNumber });
+}
+
+/**
+ * update account balance
+ * @param {string} accountNumber - account number
+ * @param {number} balance - balance
+ * @returns {Promise}
+ */
+async function updateBalance(accountNumber, balance) {
+  return await bankingAccount.updateOne(
+    {
+      accountNumber,
+    },
+    {
+      $set: {
+        balance,
+      },
+    }
+  );
+}
+
+/**
+ * add transaction
+ * @param {string} accountNumber - account number
+ * @param {string} type - transaction type
+ * @param {number} amount - transaction amount
+ * @param {string} description - description
+ * @param {date} timestamp - timestamp
+ * @returns {Promise}
+ */
+async function addTransaction(
+  accountNumber,
+  type,
+  amount,
+  description,
+  timestamp
+) {
+  return await transaction.create({
+    accountNumber,
+    type,
+    amount,
+    description,
+    timestamp,
+  });
 }
 
 module.exports = {
@@ -64,4 +117,7 @@ module.exports = {
   getAccountsByUserId,
   deleteAccount,
   getAccountByNumberAndUserID,
+  getAccountByNumber,
+  updateBalance,
+  addTransaction,
 };

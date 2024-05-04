@@ -120,10 +120,125 @@ async function checkLoginCredentials(userId, accountNumber, password) {
   return null;
 }
 
+/**
+ * Retrieves an account by account number.
+ * @param {string} accountNumber - account number
+ * @returns {object} The account object if found, null otherwise.
+ */
+async function getAccountByNumber(accountNumber) {
+  const account = await bankingRepository.getAccountByNumber(accountNumber);
+  // If account doesn't exist, return null
+  if (!account) {
+    return null;
+  }
+  // Otherwise, return the account object
+  return account;
+}
+
+/**
+ * Deposits an amount into the specified account.
+ * @param {string} accountNumber - Account number.
+ * @param {number} amount - The amount to deposit.
+ * @returns {object} The transaction details if successful, null otherwise.
+ */
+async function deposit(accountNumber, amount) {
+  // Retrieve account details by account number
+  const account = await bankingRepository.getAccountByNumber(accountNumber);
+  // Calculate new balance after deposit
+  const newBalance = parseInt(account.balance) + parseInt(amount);
+
+  // Update balance in the database
+  const deposit = await bankingRepository.updateBalance(
+    accountNumber,
+    newBalance
+  );
+
+  // If deposit failed, return null
+  if (!deposit) {
+    return null;
+  }
+
+  // Add deposit transaction to the database
+  const transaction = await bankingRepository.addTransaction(
+    accountNumber,
+    'deposit',
+    amount,
+    '',
+    new Date()
+  );
+
+  // Retrieve updated account details after deposit
+  const updateAccount =
+    await bankingRepository.getAccountByNumber(accountNumber);
+
+  const response = {
+    account_number: accountNumber,
+    name: account.name,
+    type: transaction.type,
+    amount: amount,
+    timestamp: transaction.timestamp,
+    balance: updateAccount.balance,
+  };
+  return response;
+}
+
+/**
+ * Transfers an amount from one account to another.
+ * @param {string} recipientNumber - The recipient's account number.
+ * @param {string} accountNumber - The sender's account number.
+ * @param {number} amount - The amount to transfer.
+ * @param {string} description - The description of the transfer.
+ * @returns {object} The transaction details if successful, null otherwise.
+ */
+async function transfer(recipientNumber, accountNumber, amount, description) {
+  // Retrieve recipient and sender account details
+  const recipient = await bankingRepository.getAccountByNumber(recipientNumber);
+  const account = await bankingRepository.getAccountByNumber(accountNumber);
+
+  // Calculate new balances
+  const recipientNewBalance = parseInt(recipient.balance) + parseInt(amount);
+  const accountNewBalance = parseInt(account.balance) - parseInt(amount);
+
+  try {
+    // Update balances in the database
+    await bankingRepository.updateBalance(recipientNumber, recipientNewBalance);
+    await bankingRepository.updateBalance(accountNumber, accountNewBalance);
+  } catch (error) {
+    return null;
+  }
+
+  // Construct transfer description message
+  const descriptionMessage = `${recipientNumber} (${recipient.name}) ${description}`;
+
+  // Add transfer transaction to the database
+  const transaction = await bankingRepository.addTransaction(
+    accountNumber,
+    'transfer',
+    amount,
+    descriptionMessage,
+    new Date()
+  );
+
+  const response = {
+    account_number: accountNumber,
+    name: account.name,
+    type: transaction.type,
+    amount: amount,
+    recipient_number: recipientNumber,
+    recipient_name: recipient.name,
+    description: description,
+    timestamp: transaction.timestamp,
+  };
+  return response;
+}
+
 module.exports = {
   createAccount,
   userBankingInformation,
   deleteAccount,
   getAccountByNumberAndUserID,
   checkLoginCredentials,
+  getAccountByNumber,
+  deposit,
+  transfer,
 };

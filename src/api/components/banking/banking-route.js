@@ -17,9 +17,15 @@ module.exports = (app) => {
   );
 
   route.post(
-    '/create-account',
+    '/',
     authenticationMiddleware,
     celebrate(bankingValidators.createAcccount),
     bankingControllers.createAccount
+  );
+
+  route.delete(
+    '/:account_number',
+    authenticationMiddleware,
+    bankingControllers.deleteAccount
   );
 };

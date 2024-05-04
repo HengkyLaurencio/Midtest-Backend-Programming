@@ -1,13 +1,14 @@
 const bankingRepository = require('./banking-repository');
 
 const { hashPassword, passwordMatched } = require('../../../utils/password');
+const { P } = require('pino');
 
 /**
  * create bangkin account
  * @param {string} userID - User ID
  * @param {string} name - name
  * @param {string} password - password
- * @returns {object} Response object or pass an error to the next route
+ * @returns {object}
  */
 async function createAccount(userId, name, password) {
   const hashedPassword = await hashPassword(password);
@@ -26,7 +27,7 @@ async function createAccount(userId, name, password) {
 /**
  * get user banking information
  * @param {string} userID - User ID
- * @returns {object} Response object or pass an error to the next route
+ * @returns {object}
  */
 async function userBankingInformation(userId) {
   const userData = await bankingRepository.getUser(userId);
@@ -53,4 +54,22 @@ async function userBankingInformation(userId) {
   return Response;
 }
 
-module.exports = { createAccount, userBankingInformation };
+/**
+ * delete account
+ * @param {string} userID - User ID
+ * @param {string} accountNumber - Account Number
+ * @returns {boolean}
+ */
+async function deleteAccount(userId, accountNumber) {
+  const deleteAccount = await bankingRepository.deleteAccount(
+    userId,
+    accountNumber
+  );
+  // if account not found
+  if (deleteAccount.deletedCount == 0) {
+    return false;
+  }
+  return true;
+}
+
+module.exports = { createAccount, userBankingInformation, deleteAccount };

@@ -1,5 +1,6 @@
 const bankingService = require('./banking-service');
 const { getTokenPayload } = require('../../../utils/token-parser');
+const { errorResponder, errorTypes } = require('../../../core/errors');
 
 /**
  * Handle get user banking information
@@ -10,7 +11,9 @@ const { getTokenPayload } = require('../../../utils/token-parser');
  */
 async function userBankingInformation(request, response, next) {
   try {
+    // Extract user token from request headers
     const userToken = request.headers.authorization;
+    // Decode token to get user data
     const userTokenData = getTokenPayload(userToken.substring(4));
 
     const userBankingInformation = await bankingService.userBankingInformation(
@@ -32,6 +35,7 @@ async function userBankingInformation(request, response, next) {
  */
 async function createAccount(request, response, next) {
   try {
+    // Extract user token from request headers
     const userToken = request.headers.authorization;
     // Decode token to get user data
     const userData = getTokenPayload(userToken.substring(4));
@@ -73,4 +77,38 @@ async function createAccount(request, response, next) {
   }
 }
 
-module.exports = { userBankingInformation, createAccount };
+/**
+ * Handle delete account request
+ * @param {object} request - Express request object
+ * @param {object} response - Express response object
+ * @param {object} next - Express route middlewares
+ * @returns {object} Response object or pass an error to the next route
+ */
+async function deleteAccount(request, response, next) {
+  try {
+    // Extract user token from request headers
+    const userToken = request.headers.authorization;
+    // Decode token to get user data
+    const userTokenData = getTokenPayload(userToken.substring(4));
+
+    const accountNumber = request.params.account_number;
+
+    const success = await bankingService.deleteAccount(
+      userTokenData.userId,
+      accountNumber
+    );
+
+    // Check if account deletion was successful
+    if (!success) {
+      throw errorResponder(
+        errorTypes.UNPROCESSABLE_ENTITY,
+        'Failed to delete user'
+      );
+    }
+    return response.status(200).json({ accountNumber });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+module.exports = { userBankingInformation, createAccount, deleteAccount };

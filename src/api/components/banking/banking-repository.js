@@ -22,8 +22,28 @@ async function getUser(id) {
   return User.findById(id);
 }
 
+/**
+ * Get all accounts by user id
+ * @param {string} id - User ID
+ * @returns {Promise}
+ */
 async function getAccounts(id) {
   return bankingAccount.find({ userId: id });
 }
 
-module.exports = { createAccount, getUser, getAccounts };
+/**
+ * delete account
+ * @param {string} userId - User ID
+ * @param {string} accountNumber - Account Number
+ * @returns {Promise}
+ */
+async function deleteAccount(userId, accountNumber) {
+  return bankingAccount.deleteOne({ userId, accountNumber });
+}
+
+module.exports = {
+  createAccount,
+  getUser,
+  getAccounts,
+  deleteAccount,
+};

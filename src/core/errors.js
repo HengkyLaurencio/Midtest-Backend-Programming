@@ -164,6 +164,11 @@ const errorTypes = {
     status: 500,
     code: 'DB_ERROR',
   },
+  INSUFFICIENT_FUNDS: {
+    description: 'Insufficient funds for the transfer',
+    status: 402,
+    code: 'INSUFFICIENT_FUNDS_ERROR',
+  },
 };
 
 const errorResponder = (errorType, message = '', validationErrors = null) => {

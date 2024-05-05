@@ -59,5 +59,18 @@ module.exports = (app) => {
     bankingControllers.transfer
   );
 
-  route.post('/transactions/history');
+  // withdraw
+  route.post(
+    '/transactions/withdraw',
+    authenticationBankingMiddleware,
+    celebrate(bankingValidators.withdraw),
+    bankingControllers.withdraw
+  );
+
+  // view transaction history
+  route.get(
+    '/transactions/history',
+    authenticationBankingMiddleware,
+    bankingControllers.history
+  );
 };

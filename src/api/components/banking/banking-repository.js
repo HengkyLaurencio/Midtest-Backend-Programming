@@ -111,6 +111,15 @@ async function addTransaction(
   });
 }
 
+/**
+ * get transsaction by account number
+ * @param {string} accountNumber - account number
+ * @returns {Promise}
+ */
+async function getTransactionByAccountNumber(accountNumber) {
+  return await transaction.find({ accountNumber });
+}
+
 module.exports = {
   createAccount,
   getUser,
@@ -120,4 +129,5 @@ module.exports = {
   getAccountByNumber,
   updateBalance,
   addTransaction,
+  getTransactionByAccountNumber,
 };

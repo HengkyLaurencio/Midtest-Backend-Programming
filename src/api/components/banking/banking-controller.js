@@ -233,6 +233,62 @@ async function transfer(request, response, next) {
   }
 }
 
+/**
+ * Handle withdraw request
+ * @param {object} request - Express request object
+ * @param {object} response - Express response object
+ * @param {object} next - Express route middlewares
+ * @returns {object} Response object or pass an error to the next route
+ */
+async function withdraw(request, response, next) {
+  try {
+    // Extract account token from request headers
+    const accountToken = request.headers.authorization;
+    // Decode token to get account data
+    const accountData = getTokenPayload(accountToken.substring(5));
+
+    const amount = request.body.amount;
+
+    // withdraw the specified amount into the account
+    const success = await bankingService.withdraw(
+      accountData.accountNumber,
+      amount
+    );
+
+    // If withdraw fails, throw an error
+    if (!success) {
+      throw errorResponder(errorTypes.UNPROCESSABLE_ENTITY, 'Withdraw fail');
+    }
+
+    return response.status(200).json(success);
+  } catch (error) {
+    return next(error);
+  }
+}
+
+/**
+ * Handle history request
+ * @param {object} request - Express request object
+ * @param {object} response - Express response object
+ * @param {object} next - Express route middlewares
+ * @returns {object} Response object or pass an error to the next route
+ */
+async function history(request, response, next) {
+  try {
+    // Extract account token from request headers
+    const accountToken = request.headers.authorization;
+    // Decode token to get account data
+    const accountData = getTokenPayload(accountToken.substring(5));
+
+    // get transaction history data
+    const history = await bankingService.history(accountData.accountNumber);
+
+    return response.status(200).json(history);
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
   userBankingInformation,
   createAccount,
@@ -240,4 +296,6 @@ module.exports = {
   login,
   deposit,
   transfer,
+  withdraw,
+  history,
 };

@@ -232,6 +232,89 @@ async function transfer(recipientNumber, accountNumber, amount, description) {
   return response;
 }
 
+/**
+ * withdraw an amount into the specified account.
+ * @param {string} accountNumber - Account number.
+ * @param {number} amount - The amount to deposit.
+ * @returns {object} The transaction details if successful, null otherwise.
+ */
+async function withdraw(accountNumber, amount) {
+  // Retrieve account details by account number
+  const account = await bankingRepository.getAccountByNumber(accountNumber);
+  // Calculate new balance after deposit
+  const newBalance = parseInt(account.balance) - parseInt(amount);
+
+  // Update balance in the database
+  const withdraw = await bankingRepository.updateBalance(
+    accountNumber,
+    newBalance
+  );
+
+  // If deposit failed, return null
+  if (!withdraw) {
+    return null;
+  }
+
+  // Add deposit transaction to the database
+  const transaction = await bankingRepository.addTransaction(
+    accountNumber,
+    'withdraw',
+    amount,
+    '',
+    new Date()
+  );
+
+  // Retrieve updated account details after deposit
+  const updateAccount =
+    await bankingRepository.getAccountByNumber(accountNumber);
+
+  const response = {
+    account_number: accountNumber,
+    name: account.name,
+    type: transaction.type,
+    amount: amount,
+    timestamp: transaction.timestamp,
+    balance: updateAccount.balance,
+  };
+  return response;
+}
+
+/**
+ * Retrieves transaction history for the specified account.
+ * @param {string} accountNumber - The account number.
+ * @returns {object} The transaction history if available, or a message indicating no transactions.
+ */
+async function history(accountNumber) {
+  const account = await bankingRepository.getAccountByNumber(accountNumber);
+  const transactions =
+    await bankingRepository.getTransactionByAccountNumber(accountNumber);
+
+  // Transaction data
+  const transactionsData = transactions.map((transaction) => ({
+    timestamp: transaction.timestamp,
+    type: transaction.type,
+    amount: transaction.amount,
+    description: transaction.description,
+  }));
+
+  // Sort transactions by timestamp in descending order
+  const sortedTransaction = transactionsData.sort((a, b) => {
+    return b.timestamp - a.timestamp;
+  });
+
+  // Prepare response object with account details and transaction history
+  const response = {
+    account_number: accountNumber,
+    name: account.name,
+    transaction_history:
+      sortedTransaction.length === 0
+        ? { message: 'This account has not made any transactions' }
+        : sortedTransactions,
+  };
+
+  return response;
+}
+
 module.exports = {
   createAccount,
   userBankingInformation,
@@ -241,4 +324,6 @@ module.exports = {
   getAccountByNumber,
   deposit,
   transfer,
+  withdraw,
+  history,
 };

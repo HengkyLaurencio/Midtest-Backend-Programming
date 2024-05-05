@@ -36,4 +36,9 @@ module.exports = {
       description: joi.string().optional().label('description'),
     },
   },
+  withdraw: {
+    body: {
+      amount: joi.number().integer().positive().required().label('amount'),
+    },
+  },
 };

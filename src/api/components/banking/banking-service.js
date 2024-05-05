@@ -310,7 +310,7 @@ async function history(accountNumber) {
     transaction_history:
       sortedTransaction.length === 0
         ? { message: 'This account has not made any transactions' }
-        : sortedTransactions,
+        : sortedTransaction,
   };
 
   return response;

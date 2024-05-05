@@ -289,6 +289,40 @@ async function history(request, response, next) {
   }
 }
 
+/**
+ * Handle get all accounts request
+ * @param {object} request - Express request object
+ * @param {object} response - Express response object
+ * @param {object} next - Express route middlewares
+ * @returns {object} Response object or pass an error to the next route
+ */
+async function getAllAccounts(request, response, next) {
+  try {
+    const accounts = await bankingService.getAllAccounts();
+
+    return response.status(200).json(accounts);
+  } catch (error) {
+    return next(error);
+  }
+}
+
+/**
+ * Handle get all transactions request
+ * @param {object} request - Express request object
+ * @param {object} response - Express response object
+ * @param {object} next - Express route middlewares
+ * @returns {object} Response object or pass an error to the next route
+ */
+async function getAllTransactions(request, response, next) {
+  try {
+    const transactions = await bankingService.getAllTransactions();
+
+    return response.status(200).json(transactions);
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
   userBankingInformation,
   createAccount,
@@ -298,4 +332,6 @@ module.exports = {
   transfer,
   withdraw,
   history,
+  getAllAccounts,
+  getAllTransactions,
 };

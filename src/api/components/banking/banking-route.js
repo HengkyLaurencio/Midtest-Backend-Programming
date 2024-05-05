@@ -4,6 +4,7 @@ const bankingControllers = require('./banking-controller');
 const bankingValidators = require('./banking-validator');
 const authenticationMiddleware = require('../../middlewares/authentication-middleware');
 const authenticationBankingMiddleware = require('../../middlewares/authentication-banking-middleware');
+const authenticationAdminMiddleware = require('../../middlewares/authentication-admin-middleware');
 const celebrate = require('../../../core/celebrate-wrappers');
 
 const route = express.Router();
@@ -67,10 +68,26 @@ module.exports = (app) => {
     bankingControllers.withdraw
   );
 
-  // view transaction history
+  // get transaction history
   route.get(
     '/transactions/history',
     authenticationBankingMiddleware,
     bankingControllers.history
+  );
+
+  // ----------- admin -----------
+
+  // get all accounts
+  route.get(
+    '/admin/accounts',
+    authenticationAdminMiddleware,
+    bankingControllers.getAllAccounts
+  );
+
+  // get all transactions
+  route.get(
+    '/admin/transactions',
+    authenticationAdminMiddleware,
+    bankingControllers.getAllTransactions
   );
 };

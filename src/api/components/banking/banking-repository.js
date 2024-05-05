@@ -1,4 +1,5 @@
 const { bankingAccount, User, transaction } = require('../../../models');
+const { accountsSchema } = require('../../../models/banking-schema');
 
 const {
   generateBankAccountNumber,
@@ -120,6 +121,22 @@ async function getTransactionByAccountNumber(accountNumber) {
   return await transaction.find({ accountNumber });
 }
 
+/**
+ * get all accounts
+ * @returns {Promise}
+ */
+async function getAllAccounts() {
+  return await bankingAccount.find({});
+}
+
+/**
+ * get all transactions
+ * @returns {Promise}
+ */
+async function getAllTransactions() {
+  return await transaction.find({});
+}
+
 module.exports = {
   createAccount,
   getUser,
@@ -130,4 +147,6 @@ module.exports = {
   updateBalance,
   addTransaction,
   getTransactionByAccountNumber,
+  getAllAccounts,
+  getAllTransactions,
 };

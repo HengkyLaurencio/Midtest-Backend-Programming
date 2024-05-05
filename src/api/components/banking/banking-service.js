@@ -316,6 +316,43 @@ async function history(accountNumber) {
   return response;
 }
 
+/**
+ * Retrieves all accounts.
+ * @returns {object} Array of account objects.
+ */
+async function getAllAccounts() {
+  const accounts = await bankingRepository.getAllAccounts();
+
+  const results = accounts.map((account) => ({
+    id: account._id,
+    userId: account.userID,
+    accountNumber: account.accountNumber,
+    name: account.name,
+    balance: account.balance,
+  }));
+
+  return results;
+}
+transactions;
+/**
+ * Retrieves all .
+ * @returns {object} Array of transaction objects.
+ */
+async function getAllTransactions() {
+  const transactions = await bankingRepository.getAllTransactions();
+
+  const results = transactions.map((transaction) => ({
+    id: transaction._id,
+    accountNumber: transaction.accountNumber,
+    type: transaction.type,
+    amount: transaction.amount,
+    description: transaction.description,
+    timestamp: transaction.timestamp,
+  }));
+
+  return results;
+}
+
 module.exports = {
   createAccount,
   userBankingInformation,
@@ -327,4 +364,6 @@ module.exports = {
   transfer,
   withdraw,
   history,
+  getAllAccounts,
+  getAllTransactions,
 };

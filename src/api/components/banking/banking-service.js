@@ -30,25 +30,26 @@ async function createAccount(userId, name, password) {
  * @returns {object}
  */
 async function userBankingInformation(userId) {
+  // Retrieve user data
   const userData = await bankingRepository.getUser(userId);
+  // Retrieve accounts associated with the user
   const accounts = await bankingRepository.getAccountsByUserId(userId);
 
-  const accountsResult = [];
-  for (let i = 0; i < accounts.length; i++) {
-    const account = accounts[i];
-    accountsResult.push({
-      accountNumber: account.accountNumber,
-      name: account.name,
-      balance: account.balance,
-    });
-  }
+  const accountsResult = accounts.map((account) => ({
+    accountNumber: account.accountNumber,
+    name: account.name,
+    balance: account.balance,
+  }));
 
   // formation response
   const Response = {
     userId: userData.id,
     name: userData.name,
     email: userData.email,
-    accounts: accountsResult,
+    accounts:
+      accountsResult.length === 0
+        ? { message: 'This user does not have an account yet' }
+        : accountsResult,
   };
 
   return Response;

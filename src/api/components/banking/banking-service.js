@@ -353,6 +353,22 @@ async function getAllTransactions() {
   return results;
 }
 
+/**
+ * Checks if the account has sufficient funds for a transfer.
+ * @param {string} accountNumber - The account number.
+ * @param {number} amount - The amount to transfer.
+ * @returns {boolean} True if sufficient funds are available, false otherwise.
+ */
+async function checkSufficientFunds(accountNumber, amount) {
+  const account = await bankingRepository.getAccountByNumber(accountNumber);
+
+  // Get the current account balance
+  const accountBalance = account.balance;
+
+  // Check if the account has sufficient funds for the transfer
+  return accountBalance >= amount;
+}
+
 module.exports = {
   createAccount,
   userBankingInformation,
@@ -366,4 +382,5 @@ module.exports = {
   history,
   getAllAccounts,
   getAllTransactions,
+  checkSufficientFunds,
 };

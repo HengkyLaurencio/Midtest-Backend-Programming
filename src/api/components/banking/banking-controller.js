@@ -214,6 +214,18 @@ async function transfer(request, response, next) {
       );
     }
 
+    // check is balance sufficent for transfer
+    const sufficentFund = await bankingService.checkSufficientFunds(
+      accountData.accountNumber,
+      amount
+    );
+    if (!sufficentFund) {
+      throw errorResponder(
+        errorTypes.INSUFFICIENT_FUNDS,
+        'Insufficient funds for the transfer'
+      );
+    }
+
     // Perform the transfer
     const success = await bankingService.transfer(
       recipient_account,
@@ -248,6 +260,18 @@ async function withdraw(request, response, next) {
     const accountData = getTokenPayload(accountToken.substring(5));
 
     const amount = request.body.amount;
+
+    // check is balance sufficent for withdraw
+    const sufficentFund = await bankingService.checkSufficientFunds(
+      accountData.accountNumber,
+      amount
+    );
+    if (!sufficentFund) {
+      throw errorResponder(
+        errorTypes.INSUFFICIENT_FUNDS,
+        'Insufficient funds for the withdraw'
+      );
+    }
 
     // withdraw the specified amount into the account
     const success = await bankingService.withdraw(

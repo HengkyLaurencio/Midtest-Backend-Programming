@@ -333,7 +333,7 @@ async function getAllAccounts() {
 
   return results;
 }
-transactions;
+
 /**
  * Retrieves all .
  * @returns {object} Array of transaction objects.
